@@ -1,7 +1,8 @@
 package com.Suman16iitkgp.contentCalendar.controller;
 
 import com.Suman16iitkgp.contentCalendar.model.Content;
-import com.Suman16iitkgp.contentCalendar.repository.ContentCollectionRepository;
+import com.Suman16iitkgp.contentCalendar.model.Status;
+import com.Suman16iitkgp.contentCalendar.repository.ContentRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -13,17 +14,17 @@ import java.util.List;
 @RequestMapping("/api/contents")
 public class ContentController {
 
-    private final ContentCollectionRepository contentCollectionRepository;
+    private final ContentRepository contentRepository;
 
-    public ContentController(ContentCollectionRepository contentCollectionRepository1) {
-        this.contentCollectionRepository = contentCollectionRepository1;
+    public ContentController(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
     }
 
     // request to find all pieces of content
 
     @GetMapping(value = "")
     public List<Content> findAll() {
-        return contentCollectionRepository.findAll();
+        return contentRepository.findAll();
     }
 
 
@@ -31,33 +32,43 @@ public class ContentController {
 
     @GetMapping("/{id}")
     public Content getContent(@PathVariable Integer id) {
-        return contentCollectionRepository.findById(id)
+        return contentRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not able to find content"));
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public void create(@Valid @RequestBody Content content){
-        contentCollectionRepository.save(content);
+        contentRepository.save(content);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void update(@RequestBody Content content, @PathVariable Integer id){
-        if(!contentCollectionRepository.existById(id)){
+        if(!contentRepository.existsById(id)){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Content not found");
         }
 
-        contentCollectionRepository.save(content);
+        contentRepository.save(content);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable  Integer id){
-        if(!contentCollectionRepository.existById(id)){
+        if(!contentRepository.existsById(id)){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid");
         }
 
-        contentCollectionRepository.deleteById(id);
+        contentRepository.deleteById(id);
+    }
+
+    @GetMapping("/filter/{keyword}")
+    public List<Content> findByTitle(@PathVariable String keyword) {
+        return contentRepository.findAllByTitleContains(keyword);
+    }
+
+    @GetMapping("/filter/status/{status}")
+    public List<Content> findByStatus(@PathVariable Status status){
+        return contentRepository.listByStatus(status);
     }
 
 
